@@ -120,6 +120,10 @@ class BarChartSample1State extends State<BarChartSample1> {
       x: x,
       barRods: [
         BarChartRodData(
+          borderRadius: BorderRadius.circular(0),
+          border: Border(
+            top: BorderSide(color: Colors.red, width: 6),
+          ),
           toY: isTouched ? y + 1 : y,
           color: isTouched ? widget.touchedBarColor : barColor,
           width: width,
@@ -138,18 +142,17 @@ class BarChartSample1State extends State<BarChartSample1> {
   }
 
   List<BarChartGroupData> showingGroups() => List.generate(
-        7,
-        (i) => switch (i) {
-          0 => makeGroupData(0, 5, isTouched: i == touchedIndex),
-          1 => makeGroupData(1, 6.5, isTouched: i == touchedIndex),
-          2 => makeGroupData(2, 5, isTouched: i == touchedIndex),
-          3 => makeGroupData(3, 7.5, isTouched: i == touchedIndex),
-          4 => makeGroupData(4, 9, isTouched: i == touchedIndex),
-          5 => makeGroupData(5, 11.5, isTouched: i == touchedIndex),
-          6 => makeGroupData(6, 6.5, isTouched: i == touchedIndex),
-          _ => throw Error(),
-        }
-      );
+      7,
+      (i) => switch (i) {
+            0 => makeGroupData(0, 5, isTouched: i == touchedIndex),
+            1 => makeGroupData(1, 6.5, isTouched: i == touchedIndex),
+            2 => makeGroupData(2, 5, isTouched: i == touchedIndex),
+            3 => makeGroupData(3, 7.5, isTouched: i == touchedIndex),
+            4 => makeGroupData(4, 9, isTouched: i == touchedIndex),
+            5 => makeGroupData(5, 11.5, isTouched: i == touchedIndex),
+            6 => makeGroupData(6, 6.5, isTouched: i == touchedIndex),
+            _ => throw Error(),
+          });
 
   BarChartData mainBarData() {
     return BarChartData(
