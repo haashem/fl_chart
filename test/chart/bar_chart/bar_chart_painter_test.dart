@@ -1439,6 +1439,7 @@ void main() {
         borderResult.add({
           'path': path,
           'paint_color': paint.color,
+          'stroke_cap': paint.strokeCap,
         });
       });
 
@@ -1544,6 +1545,7 @@ void main() {
         borderResult.add({
           'path': path,
           'paint_color': paint.color,
+          'stroke_cap': paint.strokeCap,
         });
       });
 
@@ -1561,6 +1563,93 @@ void main() {
       final currentPath = borderResult[0]['path'] as Path;
 
       expect(HelperMethods.equalsPaths(expectedPath, currentPath), true);
+    });
+
+    test('renders top border side only when border is provided', () {
+      const viewSize = Size(200, 100);
+
+      final barGroups = [
+        BarChartGroupData(
+          x: 0,
+          barRods: [
+            BarChartRodData(
+              fromY: 0,
+              toY: 10,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
+              border: const Border(
+                top: BorderSide(color: Colors.white, width: 2),
+              ),
+              color: Colors.transparent,
+            ),
+          ],
+        ),
+      ];
+
+      final data = BarChartData(
+        barGroups: barGroups,
+        minY: 0,
+        maxY: 10,
+      );
+
+      final barChartPainter = BarChartPainter();
+      final holder =
+          PaintHolder<BarChartData>(data, data, TextScaler.noScaling);
+
+      final mockCanvasWrapper = MockCanvasWrapper();
+      when(mockCanvasWrapper.size).thenAnswer((realInvocation) => viewSize);
+      when(mockCanvasWrapper.canvas).thenReturn(MockCanvas());
+
+      final groupsX = data.calculateGroupsX(viewSize.width);
+      final barGroupsPosition = barChartPainter.calculateGroupAndBarsPosition(
+        viewSize,
+        groupsX,
+        barGroups,
+      );
+
+      final rodDataResults = <Map<String, dynamic>>[];
+      final borderResult = <Map<String, dynamic>>[];
+
+      when(mockCanvasWrapper.drawRRect(captureAny, captureAny))
+          .thenAnswer((inv) {
+        final rrect = inv.positionalArguments[0] as RRect;
+        final paint = inv.positionalArguments[1] as Paint;
+        rodDataResults.add({
+          'rrect': rrect,
+          'paint_color': paint.color,
+        });
+      });
+
+      when(mockCanvasWrapper.drawPath(captureAny, captureAny))
+          .thenAnswer((inv) {
+        final path = inv.positionalArguments[0] as Path;
+        final paint = inv.positionalArguments[1] as Paint;
+        borderResult.add({
+          'path': path,
+          'paint_color': paint.color,
+        });
+      });
+
+      barChartPainter.drawBars(mockCanvasWrapper, barGroupsPosition, holder);
+
+      expect(rodDataResults.length, 1);
+      expect(borderResult.length, 1);
+      expect(borderResult[0]['paint_color'], Colors.white);
+      verifyNever(mockCanvasWrapper.clipRect(any));
+
+      final rrect = rodDataResults[0]['rrect'] as RRect;
+      final borderPath = borderResult[0]['path'] as Path;
+      final pathBounds = borderPath.getBounds();
+
+      expect(pathBounds.top, closeTo(rrect.top, tolerance));
+      expect(pathBounds.left, closeTo(rrect.left, tolerance));
+      expect(pathBounds.right, closeTo(rrect.right, tolerance));
+      expect(
+        pathBounds.bottom,
+        closeTo(rrect.top + 2, tolerance),
+      );
     });
 
     test('test small bar values with large border radius (issue #1757)', () {
