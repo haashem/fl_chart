@@ -1652,6 +1652,65 @@ void main() {
       );
     });
 
+    test('uses butt stroke cap for dashed per-side border', () {
+      const viewSize = Size(200, 100);
+
+      final barGroups = [
+        BarChartGroupData(
+          x: 0,
+          barRods: [
+            BarChartRodData(
+              fromY: 0,
+              toY: 10,
+              borderRadius: BorderRadius.zero,
+              border: const Border(
+                top: BorderSide(color: Colors.white, width: 2),
+              ),
+              borderDashArray: [4, 4],
+              color: Colors.transparent,
+            ),
+          ],
+        ),
+      ];
+
+      final data = BarChartData(
+        barGroups: barGroups,
+        minY: 0,
+        maxY: 10,
+      );
+
+      final barChartPainter = BarChartPainter();
+      final holder =
+          PaintHolder<BarChartData>(data, data, TextScaler.noScaling);
+
+      final mockCanvasWrapper = MockCanvasWrapper();
+      when(mockCanvasWrapper.size).thenAnswer((_) => viewSize);
+      when(mockCanvasWrapper.canvas).thenReturn(MockCanvas());
+
+      final groupsX = data.calculateGroupsX(viewSize.width);
+      final barGroupsPosition = barChartPainter.calculateGroupAndBarsPosition(
+        viewSize,
+        groupsX,
+        barGroups,
+      );
+
+      final borderResult = <Map<String, dynamic>>[];
+      when(mockCanvasWrapper.drawPath(captureAny, captureAny))
+          .thenAnswer((inv) {
+        final paint = inv.positionalArguments[1] as Paint;
+        borderResult.add({
+          'stroke_cap': paint.strokeCap,
+          'paint_color': paint.color,
+        });
+      });
+
+      barChartPainter.drawBars(mockCanvasWrapper, barGroupsPosition, holder);
+
+      expect(borderResult.length, 1);
+      expect(borderResult[0]['paint_color'], Colors.white);
+      expect(borderResult[0]['stroke_cap'], StrokeCap.butt);
+    });
+
     test('test small bar values with large border radius (issue #1757)', () {
       const viewSize = Size(200, 200);
 

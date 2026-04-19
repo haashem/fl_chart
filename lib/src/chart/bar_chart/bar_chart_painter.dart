@@ -629,7 +629,7 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
       ..style = PaintingStyle.stroke
       ..color = borderSide.color
       ..strokeWidth = borderSide.width * 2
-      ..strokeCap = StrokeCap.square
+      ..strokeCap = StrokeCap.butt
       ..strokeJoin = StrokeJoin.round;
 
     canvasWrapper
