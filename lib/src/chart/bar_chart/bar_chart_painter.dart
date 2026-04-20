@@ -14,32 +14,6 @@ import 'package:flutter/material.dart';
 
 enum _BarBorderEdge { top, right, bottom, left }
 
-class _BorderEdgePathConfig {
-  const _BorderEdgePathConfig({
-    required this.startRadius,
-    required this.endRadius,
-    required this.startNoRadiusPoint,
-    required this.startRadiusMovePoint,
-    required this.startRadiusRect,
-    required this.startArcAngle,
-    required this.lineToPoint,
-    required this.endNoRadiusPoint,
-    required this.endRadiusRect,
-    required this.endArcAngle,
-  });
-
-  final Radius startRadius;
-  final Radius endRadius;
-  final Offset startNoRadiusPoint;
-  final Offset startRadiusMovePoint;
-  final Rect startRadiusRect;
-  final double startArcAngle;
-  final Offset lineToPoint;
-  final Offset endNoRadiusPoint;
-  final Rect endRadiusRect;
-  final double endArcAngle;
-}
-
 /// Paints [BarChartData] in the canvas, it can be used in a [CustomPainter]
 class BarChartPainter extends AxisChartPainter<BarChartData> {
   /// Paints [dataList] into canvas, it is the animating [BarChartData],
@@ -506,11 +480,13 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
   }) {
     for (final edge in _BarBorderEdge.values) {
       final borderSide = _borderSideForEdge(border, edge);
-      _drawSingleBarBorderSideFill(
+      _drawPerSideBorderWithClipping(
         canvasWrapper: canvasWrapper,
         barClipPath: barClipPath,
+        barRRect: barRRect,
+        edge: edge,
         borderSide: borderSide,
-        borderRect: _borderRectForEdge(barRRect, borderSide.width, edge),
+        dashArray: null,
       );
     }
   }
@@ -523,10 +499,11 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
     required List<int> dashArray,
   }) {
     for (final edge in _BarBorderEdge.values) {
-      _drawSingleBarBorderSide(
+      _drawPerSideBorderWithClipping(
         canvasWrapper: canvasWrapper,
         barClipPath: barClipPath,
-        borderPath: _buildBorderPathForEdge(barRRect, edge),
+        barRRect: barRRect,
+        edge: edge,
         borderSide: _borderSideForEdge(border, edge),
         dashArray: dashArray,
       );
@@ -569,55 +546,11 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
           ),
       };
 
-  Path _buildBorderPathForEdge(RRect barRRect, _BarBorderEdge edge) {
-    final config = _buildBorderEdgePathConfig(barRRect, edge);
-    final path = Path();
-
-    if (_hasRadius(config.startRadius)) {
-      path
-        ..moveTo(config.startRadiusMovePoint.dx, config.startRadiusMovePoint.dy)
-        ..addArc(config.startRadiusRect, config.startArcAngle, pi / 2);
-    } else {
-      path.moveTo(config.startNoRadiusPoint.dx, config.startNoRadiusPoint.dy);
-    }
-
-    path.lineTo(config.lineToPoint.dx, config.lineToPoint.dy);
-
-    if (_hasRadius(config.endRadius)) {
-      path.addArc(config.endRadiusRect, config.endArcAngle, pi / 2);
-    } else {
-      path.lineTo(config.endNoRadiusPoint.dx, config.endNoRadiusPoint.dy);
-    }
-
-    return path;
-  }
-
-  void _drawSingleBarBorderSideFill({
+  void _drawPerSideBorderWithClipping({
     required CanvasWrapper canvasWrapper,
     required Path barClipPath,
-    required BorderSide borderSide,
-    required Rect borderRect,
-  }) {
-    if (borderSide.width <= 0 || borderSide.color.a <= 0) {
-      return;
-    }
-
-    _barStrokePaint
-      ..style = PaintingStyle.fill
-      ..color = borderSide.color;
-
-    final borderPath = Path()..addRect(borderRect);
-    canvasWrapper
-      ..save()
-      ..clipPath(barClipPath)
-      ..drawPath(borderPath, _barStrokePaint)
-      ..restore();
-  }
-
-  void _drawSingleBarBorderSide({
-    required CanvasWrapper canvasWrapper,
-    required Path barClipPath,
-    required Path borderPath,
+    required RRect barRRect,
+    required _BarBorderEdge edge,
     required BorderSide borderSide,
     required List<int>? dashArray,
   }) {
@@ -630,137 +563,17 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
       ..color = borderSide.color
       ..strokeWidth = borderSide.width * 2
       ..strokeCap = StrokeCap.butt
-      ..strokeJoin = StrokeJoin.round;
+      ..strokeJoin = StrokeJoin.miter;
+
+    final borderPath = Path()..addRRect(barRRect);
 
     canvasWrapper
       ..save()
+      ..clipRect(_borderRectForEdge(barRRect, borderSide.width, edge))
       ..clipPath(barClipPath)
       ..drawPath(borderPath.toDashedPath(dashArray), _barStrokePaint)
       ..restore();
   }
-
-  bool _hasRadius(Radius radius) => radius.x > 0 && radius.y > 0;
-
-  Rect _radiusRect({
-    required double left,
-    required double top,
-    required double radiusX,
-    required double radiusY,
-  }) =>
-      Rect.fromLTWH(left, top, radiusX * 2, radiusY * 2);
-
-  _BorderEdgePathConfig _buildBorderEdgePathConfig(
-    RRect barRRect,
-    _BarBorderEdge edge,
-  ) =>
-      switch (edge) {
-        _BarBorderEdge.top => _BorderEdgePathConfig(
-            startRadius: barRRect.tlRadius,
-            endRadius: barRRect.trRadius,
-            startNoRadiusPoint: Offset(barRRect.left, barRRect.top),
-            startRadiusMovePoint: Offset(
-              barRRect.left,
-              barRRect.top + barRRect.tlRadiusY,
-            ),
-            startRadiusRect: _radiusRect(
-              left: barRRect.left,
-              top: barRRect.top,
-              radiusX: barRRect.tlRadiusX,
-              radiusY: barRRect.tlRadiusY,
-            ),
-            startArcAngle: pi,
-            lineToPoint:
-                Offset(barRRect.right - barRRect.trRadiusX, barRRect.top),
-            endNoRadiusPoint: Offset(barRRect.right, barRRect.top),
-            endRadiusRect: _radiusRect(
-              left: barRRect.right - (barRRect.trRadiusX * 2),
-              top: barRRect.top,
-              radiusX: barRRect.trRadiusX,
-              radiusY: barRRect.trRadiusY,
-            ),
-            endArcAngle: -pi / 2,
-          ),
-        _BarBorderEdge.right => _BorderEdgePathConfig(
-            startRadius: barRRect.trRadius,
-            endRadius: barRRect.brRadius,
-            startNoRadiusPoint: Offset(barRRect.right, barRRect.top),
-            startRadiusMovePoint: Offset(
-              barRRect.right - barRRect.trRadiusX,
-              barRRect.top,
-            ),
-            startRadiusRect: _radiusRect(
-              left: barRRect.right - (barRRect.trRadiusX * 2),
-              top: barRRect.top,
-              radiusX: barRRect.trRadiusX,
-              radiusY: barRRect.trRadiusY,
-            ),
-            startArcAngle: -pi / 2,
-            lineToPoint: Offset(
-              barRRect.right,
-              barRRect.bottom - barRRect.brRadiusY,
-            ),
-            endNoRadiusPoint: Offset(barRRect.right, barRRect.bottom),
-            endRadiusRect: _radiusRect(
-              left: barRRect.right - (barRRect.brRadiusX * 2),
-              top: barRRect.bottom - (barRRect.brRadiusY * 2),
-              radiusX: barRRect.brRadiusX,
-              radiusY: barRRect.brRadiusY,
-            ),
-            endArcAngle: 0,
-          ),
-        _BarBorderEdge.bottom => _BorderEdgePathConfig(
-            startRadius: barRRect.brRadius,
-            endRadius: barRRect.blRadius,
-            startNoRadiusPoint: Offset(barRRect.right, barRRect.bottom),
-            startRadiusMovePoint: Offset(
-              barRRect.right,
-              barRRect.bottom - barRRect.brRadiusY,
-            ),
-            startRadiusRect: _radiusRect(
-              left: barRRect.right - (barRRect.brRadiusX * 2),
-              top: barRRect.bottom - (barRRect.brRadiusY * 2),
-              radiusX: barRRect.brRadiusX,
-              radiusY: barRRect.brRadiusY,
-            ),
-            startArcAngle: 0,
-            lineToPoint:
-                Offset(barRRect.left + barRRect.blRadiusX, barRRect.bottom),
-            endNoRadiusPoint: Offset(barRRect.left, barRRect.bottom),
-            endRadiusRect: _radiusRect(
-              left: barRRect.left,
-              top: barRRect.bottom - (barRRect.blRadiusY * 2),
-              radiusX: barRRect.blRadiusX,
-              radiusY: barRRect.blRadiusY,
-            ),
-            endArcAngle: pi / 2,
-          ),
-        _BarBorderEdge.left => _BorderEdgePathConfig(
-            startRadius: barRRect.blRadius,
-            endRadius: barRRect.tlRadius,
-            startNoRadiusPoint: Offset(barRRect.left, barRRect.bottom),
-            startRadiusMovePoint: Offset(
-              barRRect.left + barRRect.blRadiusX,
-              barRRect.bottom,
-            ),
-            startRadiusRect: _radiusRect(
-              left: barRRect.left,
-              top: barRRect.bottom - (barRRect.blRadiusY * 2),
-              radiusX: barRRect.blRadiusX,
-              radiusY: barRRect.blRadiusY,
-            ),
-            startArcAngle: pi / 2,
-            lineToPoint:
-                Offset(barRRect.left, barRRect.top + barRRect.tlRadiusY),
-            endNoRadiusPoint: Offset(barRRect.left, barRRect.top),
-            endRadiusRect: _radiusRect(
-              left: barRRect.left,
-              top: barRRect.top,
-              radiusX: barRRect.tlRadiusX,
-              radiusY: barRRect.tlRadiusY,
-            ),
-            endArcAngle: pi,
-          ),
-      };
 
   @visibleForTesting
   void drawBarLabels(

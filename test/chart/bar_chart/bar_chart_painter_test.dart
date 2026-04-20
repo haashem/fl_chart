@@ -1617,6 +1617,7 @@ void main() {
 
       final rodDataResults = <Map<String, dynamic>>[];
       final borderResult = <Map<String, dynamic>>[];
+      final clipRectResults = <Rect>[];
 
       when(mockCanvasWrapper.drawRRect(captureAny, captureAny))
           .thenAnswer((inv) {
@@ -1637,25 +1638,28 @@ void main() {
           'paint_color': paint.color,
         });
       });
+      when(mockCanvasWrapper.clipRect(captureAny)).thenAnswer((inv) {
+        final rect = inv.positionalArguments[0] as Rect;
+        clipRectResults.add(rect);
+      });
 
       barChartPainter.drawBars(mockCanvasWrapper, barGroupsPosition, holder);
 
       expect(rodDataResults.length, 1);
       expect(borderResult.length, 1);
       expect(borderResult[0]['paint_color'], Colors.white);
-      verifyNever(mockCanvasWrapper.clipRect(any));
+      expect(clipRectResults.length, 1);
 
       final rrect = rodDataResults[0]['rrect'] as RRect;
       final borderPath = borderResult[0]['path'] as Path;
-      final pathBounds = borderPath.getBounds();
+      final expectedPath = (Path()..addRRect(rrect)).toDashedPath(null);
+      expect(HelperMethods.equalsPaths(expectedPath, borderPath), true);
 
-      expect(pathBounds.top, closeTo(rrect.top, tolerance));
-      expect(pathBounds.left, closeTo(rrect.left, tolerance));
-      expect(pathBounds.right, closeTo(rrect.right, tolerance));
-      expect(
-        pathBounds.bottom,
-        closeTo(rrect.top + 2, tolerance),
-      );
+      final clipRect = clipRectResults.single;
+      expect(clipRect.left, closeTo(rrect.left, tolerance));
+      expect(clipRect.top, closeTo(rrect.top, tolerance));
+      expect(clipRect.right, closeTo(rrect.right, tolerance));
+      expect(clipRect.bottom, closeTo(rrect.top + 2, tolerance));
     });
 
     test('uses butt stroke cap for dashed per-side border', () {
