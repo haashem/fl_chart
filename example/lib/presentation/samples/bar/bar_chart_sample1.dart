@@ -121,15 +121,14 @@ class BarChartSample1State extends State<BarChartSample1> {
       barRods: [
         BarChartRodData(
           borderRadius: BorderRadius.circular(0),
-          border: Border(
-            top: BorderSide(color: Colors.red, width: 6),
-          ),
+          border: isTouched
+              ? Border.all(color: widget.touchedBarColor.darken(80))
+              : Border(
+                  top: BorderSide(color: Colors.red, width: 6),
+                ),
           toY: isTouched ? y + 1 : y,
           color: isTouched ? widget.touchedBarColor : barColor,
           width: width,
-          borderSide: isTouched
-              ? BorderSide(color: widget.touchedBarColor.darken(80))
-              : const BorderSide(color: Colors.white, width: 0),
           backDrawRodData: BackgroundBarChartRodData(
             show: true,
             toY: 20,

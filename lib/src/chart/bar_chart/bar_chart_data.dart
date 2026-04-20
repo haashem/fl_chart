@@ -339,6 +339,10 @@ class BarChartRodData with EquatableMixin {
     double? width,
     BorderRadius? borderRadius,
     this.borderDashArray,
+    @Deprecated(
+      'Use [border] instead. '
+      'This will be removed in the next major release.',
+    )
     BorderSide? borderSide,
     Border? border,
     BackgroundBarChartRodData? backDrawRodData,
@@ -389,6 +393,8 @@ class BarChartRodData with EquatableMixin {
   final List<int>? borderDashArray;
 
   /// If you want to have a border for rod, set this value.
+  ///
+  /// Deprecated: Use [border] for per-side border configuration.
   final BorderSide borderSide;
 
   /// If you want different borders for each side of rod, set this value.
@@ -423,6 +429,10 @@ class BarChartRodData with EquatableMixin {
     double? width,
     BorderRadius? borderRadius,
     List<int>? dashArray,
+    @Deprecated(
+      'Use [border] instead. '
+      'This will be removed in the next major release.',
+    )
     BorderSide? borderSide,
     Border? border,
     BackgroundBarChartRodData? backDrawRodData,
@@ -438,6 +448,7 @@ class BarChartRodData with EquatableMixin {
         width: width ?? this.width,
         borderRadius: borderRadius ?? this.borderRadius,
         borderDashArray: borderDashArray,
+        // ignore: deprecated_member_use_from_same_package, keep fallback for backward compatibility until next major.
         borderSide: borderSide ?? this.borderSide,
         border: border ?? this.border,
         backDrawRodData: backDrawRodData ?? this.backDrawRodData,
@@ -453,6 +464,7 @@ class BarChartRodData with EquatableMixin {
         width: lerpDouble(a.width, b.width, t),
         borderRadius: BorderRadius.lerp(a.borderRadius, b.borderRadius, t),
         borderDashArray: lerpIntList(a.borderDashArray, b.borderDashArray, t),
+        // ignore: deprecated_member_use_from_same_package, keep lerp fallback for backward compatibility until next major.
         borderSide: BorderSide.lerp(a.borderSide, b.borderSide, t),
         border: Border.lerp(a.border, b.border, t),
         fromY: lerpDouble(a.fromY, b.fromY, t),
