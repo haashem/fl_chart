@@ -437,6 +437,7 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
     BorderSide fallbackBorderSide,
   ) {
     final barClipPath = Path()..addRRect(barRRect);
+    final dashArray = barRod.borderDashArray;
     final border = barRod.border;
     if (border == null) {
       _drawUniformBarBorderStroke(
@@ -444,12 +445,11 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
         barClipPath: barClipPath,
         barRRect: barRRect,
         borderSide: fallbackBorderSide,
-        dashArray: barRod.borderDashArray,
+        dashArray: dashArray,
       );
       return;
     }
 
-    final dashArray = barRod.borderDashArray;
     if (dashArray == null) {
       _drawSolidPerSideBarBorder(
         canvasWrapper: canvasWrapper,
