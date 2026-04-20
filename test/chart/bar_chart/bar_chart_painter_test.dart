@@ -1391,6 +1391,7 @@ void main() {
               fromY: 0,
               toY: 15,
               borderDashArray: [4, 4],
+              // ignore: deprecated_member_use_from_same_package, keep coverage for deprecated legacy borderSide behavior.
               borderSide: const BorderSide(
                 color: Colors.white,
                 width: 2,
@@ -1497,6 +1498,7 @@ void main() {
             BarChartRodData(
               fromY: 0,
               toY: 15,
+              // ignore: deprecated_member_use_from_same_package, keep coverage for deprecated legacy borderSide behavior.
               borderSide: const BorderSide(
                 color: Colors.white,
                 width: 2,
