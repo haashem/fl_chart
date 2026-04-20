@@ -1664,6 +1664,98 @@ void main() {
       expect(clipRect.bottom, closeTo(rrect.top + 2, tolerance));
     });
 
+    test('renders clip rect for each border side when border is provided', () {
+      const viewSize = Size(200, 100);
+
+      final barGroups = [
+        BarChartGroupData(
+          x: 0,
+          barRods: [
+            BarChartRodData(
+              fromY: 0,
+              toY: 10,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
+              border: const Border(
+                top: BorderSide(color: Colors.white, width: 2),
+                right: BorderSide(color: Colors.white, width: 2),
+                bottom: BorderSide(color: Colors.white, width: 2),
+                left: BorderSide(color: Colors.white, width: 2),
+              ),
+              color: Colors.transparent,
+            ),
+          ],
+        ),
+      ];
+
+      final data = BarChartData(
+        barGroups: barGroups,
+        minY: 0,
+        maxY: 10,
+      );
+
+      final barChartPainter = BarChartPainter();
+      final holder =
+          PaintHolder<BarChartData>(data, data, TextScaler.noScaling);
+
+      final mockCanvasWrapper = MockCanvasWrapper();
+      when(mockCanvasWrapper.size).thenAnswer((realInvocation) => viewSize);
+      when(mockCanvasWrapper.canvas).thenReturn(MockCanvas());
+
+      final groupsX = data.calculateGroupsX(viewSize.width);
+      final barGroupsPosition = barChartPainter.calculateGroupAndBarsPosition(
+        viewSize,
+        groupsX,
+        barGroups,
+      );
+
+      final rodDataResults = <RRect>[];
+      final clipRectResults = <Rect>[];
+
+      when(mockCanvasWrapper.drawRRect(captureAny, captureAny))
+          .thenAnswer((inv) {
+        final rrect = inv.positionalArguments[0] as RRect;
+        rodDataResults.add(rrect);
+      });
+      when(mockCanvasWrapper.clipRect(captureAny)).thenAnswer((inv) {
+        final rect = inv.positionalArguments[0] as Rect;
+        clipRectResults.add(rect);
+      });
+
+      barChartPainter.drawBars(mockCanvasWrapper, barGroupsPosition, holder);
+
+      expect(rodDataResults.length, 1);
+      expect(clipRectResults.length, 4);
+
+      final rrect = rodDataResults.single;
+
+      final topRect = clipRectResults[0];
+      expect(topRect.left, closeTo(rrect.left, tolerance));
+      expect(topRect.top, closeTo(rrect.top, tolerance));
+      expect(topRect.right, closeTo(rrect.right, tolerance));
+      expect(topRect.bottom, closeTo(rrect.top + 2, tolerance));
+
+      final rightRect = clipRectResults[1];
+      expect(rightRect.left, closeTo(rrect.right - 2, tolerance));
+      expect(rightRect.top, closeTo(rrect.top, tolerance));
+      expect(rightRect.right, closeTo(rrect.right, tolerance));
+      expect(rightRect.bottom, closeTo(rrect.bottom, tolerance));
+
+      final bottomRect = clipRectResults[2];
+      expect(bottomRect.left, closeTo(rrect.left, tolerance));
+      expect(bottomRect.top, closeTo(rrect.bottom - 2, tolerance));
+      expect(bottomRect.right, closeTo(rrect.right, tolerance));
+      expect(bottomRect.bottom, closeTo(rrect.bottom, tolerance));
+
+      final leftRect = clipRectResults[3];
+      expect(leftRect.left, closeTo(rrect.left, tolerance));
+      expect(leftRect.top, closeTo(rrect.top, tolerance));
+      expect(leftRect.right, closeTo(rrect.left + 2, tolerance));
+      expect(leftRect.bottom, closeTo(rrect.bottom, tolerance));
+    });
+
     test('uses butt stroke cap for dashed per-side border', () {
       const viewSize = Size(200, 100);
 
