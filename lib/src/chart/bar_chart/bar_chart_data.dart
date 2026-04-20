@@ -299,20 +299,6 @@ class BarChartGroupData with EquatableMixin {
       ];
 }
 
-Border? _normalizeBorder(Border? border, double width) {
-  if (border == null) {
-    return null;
-  }
-
-  final utils = Utils();
-  return Border(
-    top: utils.normalizeBorderSide(border.top, width),
-    right: utils.normalizeBorderSide(border.right, width),
-    bottom: utils.normalizeBorderSide(border.bottom, width),
-    left: utils.normalizeBorderSide(border.left, width),
-  );
-}
-
 /// Holds data about rendering each rod (or bar) in the [BarChart].
 class BarChartRodData with EquatableMixin {
   /// [BarChart] renders rods vertically from zero to [toY],
@@ -364,7 +350,7 @@ class BarChartRodData with EquatableMixin {
         width = width ?? 8,
         borderRadius = Utils().normalizeBorderRadius(borderRadius, width ?? 8),
         borderSide = Utils().normalizeBorderSide(borderSide, width ?? 8),
-        border = _normalizeBorder(border, width ?? 8),
+        border = Utils().normalizeBorder(border, width ?? 8),
         backDrawRodData = backDrawRodData ?? BackgroundBarChartRodData(),
         rodStackItems = rodStackItems ?? const [];
 

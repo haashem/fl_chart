@@ -74,6 +74,9 @@ void main() {
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
       );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
 
       final mockBuildContext = MockBuildContext();
       final mockCanvasWrapper = MockCanvasWrapper();
@@ -110,6 +113,9 @@ void main() {
           .thenAnswer((realInvocation) => BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
+      );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
       );
     });
 
@@ -1843,6 +1849,9 @@ void main() {
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
       );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
     });
 
     tearDown(() {
@@ -2074,6 +2083,9 @@ void main() {
       when(mockUtils.normalizeBorderRadius(any, any))
           .thenReturn(BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenReturn(BorderSide.none);
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
       when(mockUtils.calculateRotationOffset(any, any)).thenReturn(Offset.zero);
       when(mockUtils.getBestInitialIntervalValue(any, any, any)).thenReturn(0);
       when(mockUtils.formatNumber(any, any, captureAny)).thenAnswer((inv) {
@@ -2271,6 +2283,9 @@ void main() {
       when(mockUtils.normalizeBorderRadius(any, any))
           .thenReturn(BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenReturn(BorderSide.none);
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
       when(mockUtils.calculateRotationOffset(any, any)).thenReturn(Offset.zero);
       when(mockUtils.getBestInitialIntervalValue(any, any, any)).thenReturn(0);
       when(mockUtils.formatNumber(any, any, captureAny)).thenAnswer((inv) {
@@ -2480,6 +2495,9 @@ void main() {
       when(mockUtils.normalizeBorderRadius(any, any))
           .thenReturn(BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenReturn(BorderSide.none);
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
       when(mockUtils.calculateRotationOffset(any, any)).thenReturn(Offset.zero);
       when(mockUtils.getBestInitialIntervalValue(any, any, any)).thenReturn(0);
       when(mockUtils.formatNumber(any, any, captureAny)).thenAnswer((inv) {
@@ -2642,6 +2660,9 @@ void main() {
       when(mockUtils.normalizeBorderRadius(any, any))
           .thenReturn(BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenReturn(BorderSide.none);
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
       when(mockUtils.calculateRotationOffset(any, any)).thenReturn(Offset.zero);
       when(mockUtils.getBestInitialIntervalValue(any, any, any)).thenReturn(0);
       Utils.changeInstance(mockUtils);
@@ -2801,6 +2822,9 @@ void main() {
       when(mockUtils.normalizeBorderRadius(any, any))
           .thenReturn(BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenReturn(BorderSide.none);
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
       when(mockUtils.calculateRotationOffset(any, any)).thenReturn(Offset.zero);
       when(mockUtils.getBestInitialIntervalValue(any, any, any)).thenReturn(0);
       Utils.changeInstance(mockUtils);
@@ -3710,6 +3734,9 @@ void main() {
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
       );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
+      );
 
       final mockBuildContext = MockBuildContext();
       final mockCanvasWrapper = MockCanvasWrapper();
@@ -3806,6 +3833,9 @@ void main() {
           .thenAnswer((realInvocation) => BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
+      );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
       );
 
       final mockBuildContext = MockBuildContext();
@@ -3905,6 +3935,9 @@ void main() {
           .thenAnswer((realInvocation) => BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
+      );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
       );
 
       final mockBuildContext = MockBuildContext();
@@ -4037,6 +4070,9 @@ void main() {
           .thenAnswer((realInvocation) => BorderRadius.zero);
       when(mockUtils.normalizeBorderSide(any, any)).thenAnswer(
         (realInvocation) => const BorderSide(color: MockData.color0),
+      );
+      when(mockUtils.normalizeBorder(any, any)).thenAnswer(
+        (realInvocation) => realInvocation.positionalArguments[0] as Border?,
       );
     });
 
