@@ -410,13 +410,11 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
     BarChartRodData barRod,
     BorderSide fallbackBorderSide,
   ) {
-    final barClipPath = Path()..addRRect(barRRect);
     final dashArray = barRod.borderDashArray;
     final border = barRod.border;
     if (border == null) {
       _drawUniformBarBorderStroke(
         canvasWrapper: canvasWrapper,
-        barClipPath: barClipPath,
         barRRect: barRRect,
         borderSide: fallbackBorderSide,
         dashArray: dashArray,
@@ -424,19 +422,18 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
       return;
     }
 
-    if (dashArray == null) {
-      _drawSolidPerSideBarBorder(
+    if (border.isUniform) {
+      _drawUniformBarBorderStroke(
         canvasWrapper: canvasWrapper,
-        barClipPath: barClipPath,
         barRRect: barRRect,
-        border: border,
+        borderSide: border.top,
+        dashArray: dashArray,
       );
       return;
     }
 
-    _drawDashedPerSideBarBorder(
+    _drawPerSideBarBorderStroke(
       canvasWrapper: canvasWrapper,
-      barClipPath: barClipPath,
       barRRect: barRRect,
       border: border,
       dashArray: dashArray,
@@ -445,7 +442,6 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
 
   void _drawUniformBarBorderStroke({
     required CanvasWrapper canvasWrapper,
-    required Path barClipPath,
     required RRect barRRect,
     required BorderSide borderSide,
     required List<int>? dashArray,
@@ -457,54 +453,35 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
     _barStrokePaint
       ..style = PaintingStyle.stroke
       ..color = borderSide.color
-      ..strokeWidth = borderSide.width * 2
+      ..strokeWidth = borderSide.width
       ..strokeCap = StrokeCap.butt
       ..strokeJoin = StrokeJoin.miter;
 
     final borderPath = Path()..addRRect(barRRect);
-    canvasWrapper
-      ..save()
-      ..clipPath(barClipPath)
-      ..drawPath(
-        borderPath.toDashedPath(dashArray),
-        _barStrokePaint,
-      )
-      ..restore();
+    canvasWrapper.drawPath(
+      borderPath.toDashedPath(dashArray),
+      _barStrokePaint,
+    );
   }
 
-  void _drawSolidPerSideBarBorder({
+  void _drawPerSideBarBorderStroke({
     required CanvasWrapper canvasWrapper,
-    required Path barClipPath,
     required RRect barRRect,
     required Border border,
+    required List<int>? dashArray,
   }) {
     for (final edge in _BarBorderEdge.values) {
       final borderSide = _borderSideForEdge(border, edge);
       _drawPerSideBorderWithClipping(
         canvasWrapper: canvasWrapper,
-        barClipPath: barClipPath,
         barRRect: barRRect,
-        edge: edge,
         borderSide: borderSide,
-        dashArray: null,
-      );
-    }
-  }
-
-  void _drawDashedPerSideBarBorder({
-    required CanvasWrapper canvasWrapper,
-    required Path barClipPath,
-    required RRect barRRect,
-    required Border border,
-    required List<int> dashArray,
-  }) {
-    for (final edge in _BarBorderEdge.values) {
-      _drawPerSideBorderWithClipping(
-        canvasWrapper: canvasWrapper,
-        barClipPath: barClipPath,
-        barRRect: barRRect,
-        edge: edge,
-        borderSide: _borderSideForEdge(border, edge),
+        borderRect: _borderRectForEdge(
+          barRRect: barRRect,
+          border: border,
+          edge: edge,
+          width: borderSide.width,
+        ),
         dashArray: dashArray,
       );
     }
@@ -518,40 +495,75 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
         _BarBorderEdge.left => border.left,
       };
 
-  Rect _borderRectForEdge(RRect barRRect, double width, _BarBorderEdge edge) =>
+  bool _isVisibleBorderSide(BorderSide side) =>
+      side.width > 0 && side.color.a > 0;
+
+  (BorderSide start, BorderSide end) _edgeNeighbors(
+    Border border,
+    _BarBorderEdge edge,
+  ) =>
       switch (edge) {
-        _BarBorderEdge.top => Rect.fromLTRB(
-            barRRect.left,
-            barRRect.top,
-            barRRect.right,
-            barRRect.top + width,
+        _BarBorderEdge.top => (
+            border.left,
+            border.right,
           ),
-        _BarBorderEdge.right => Rect.fromLTRB(
-            barRRect.right - width,
-            barRRect.top,
-            barRRect.right,
-            barRRect.bottom,
+        _BarBorderEdge.right => (
+            border.top,
+            border.bottom,
           ),
-        _BarBorderEdge.bottom => Rect.fromLTRB(
-            barRRect.left,
-            barRRect.bottom - width,
-            barRRect.right,
-            barRRect.bottom,
+        _BarBorderEdge.bottom => (
+            border.left,
+            border.right,
           ),
-        _BarBorderEdge.left => Rect.fromLTRB(
-            barRRect.left,
-            barRRect.top,
-            barRRect.left + width,
-            barRRect.bottom,
+        _BarBorderEdge.left => (
+            border.top,
+            border.bottom,
           ),
       };
 
+  Rect _borderRectForEdge({
+    required RRect barRRect,
+    required Border border,
+    required double width,
+    required _BarBorderEdge edge,
+  }) {
+    final halfWidth = width / 2;
+    final neighbors = _edgeNeighbors(border, edge);
+    final extendStart = _isVisibleBorderSide(neighbors.$1);
+    final extendEnd = _isVisibleBorderSide(neighbors.$2);
+    return switch (edge) {
+      _BarBorderEdge.top => Rect.fromLTRB(
+          barRRect.left - (extendStart ? halfWidth : 0),
+          barRRect.top - halfWidth,
+          barRRect.right + (extendEnd ? halfWidth : 0),
+          barRRect.top + halfWidth,
+        ),
+      _BarBorderEdge.right => Rect.fromLTRB(
+          barRRect.right - halfWidth,
+          barRRect.top - (extendStart ? halfWidth : 0),
+          barRRect.right + halfWidth,
+          barRRect.bottom + (extendEnd ? halfWidth : 0),
+        ),
+      _BarBorderEdge.bottom => Rect.fromLTRB(
+          barRRect.left - (extendStart ? halfWidth : 0),
+          barRRect.bottom - halfWidth,
+          barRRect.right + (extendEnd ? halfWidth : 0),
+          barRRect.bottom + halfWidth,
+        ),
+      _BarBorderEdge.left => Rect.fromLTRB(
+          barRRect.left - halfWidth,
+          barRRect.top - (extendStart ? halfWidth : 0),
+          barRRect.left + halfWidth,
+          barRRect.bottom + (extendEnd ? halfWidth : 0),
+        ),
+    };
+  }
+
   void _drawPerSideBorderWithClipping({
     required CanvasWrapper canvasWrapper,
-    required Path barClipPath,
     required RRect barRRect,
-    required _BarBorderEdge edge,
     required BorderSide borderSide,
+    required Rect borderRect,
     required List<int>? dashArray,
   }) {
     if (borderSide.width <= 0 || borderSide.color.a <= 0) {
@@ -561,7 +573,7 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
     _barStrokePaint
       ..style = PaintingStyle.stroke
       ..color = borderSide.color
-      ..strokeWidth = borderSide.width * 2
+      ..strokeWidth = borderSide.width
       ..strokeCap = StrokeCap.butt
       ..strokeJoin = StrokeJoin.miter;
 
@@ -569,8 +581,7 @@ class BarChartPainter extends AxisChartPainter<BarChartData> {
 
     canvasWrapper
       ..save()
-      ..clipRect(_borderRectForEdge(barRRect, borderSide.width, edge))
-      ..clipPath(barClipPath)
+      ..clipRect(borderRect)
       ..drawPath(borderPath.toDashedPath(dashArray), _barStrokePaint)
       ..restore();
   }

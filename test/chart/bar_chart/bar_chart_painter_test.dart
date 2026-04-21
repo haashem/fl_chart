@@ -1678,9 +1678,9 @@ void main() {
 
       final clipRect = result.clipRects.single;
       expect(clipRect.left, closeTo(rrect.left, tolerance));
-      expect(clipRect.top, closeTo(rrect.top, tolerance));
+      expect(clipRect.top, closeTo(rrect.top - 1, tolerance));
       expect(clipRect.right, closeTo(rrect.right, tolerance));
-      expect(clipRect.bottom, closeTo(rrect.top + 2, tolerance));
+      expect(clipRect.bottom, closeTo(rrect.top + 1, tolerance));
     });
 
     test('renders clip rect for each border side when border is provided', () {
@@ -1690,10 +1690,10 @@ void main() {
           topRight: Radius.circular(4),
         ),
         border: const Border(
-          top: BorderSide(color: Colors.white, width: 2),
+          top: BorderSide(color: Colors.white),
           right: BorderSide(color: Colors.white, width: 2),
-          bottom: BorderSide(color: Colors.white, width: 2),
-          left: BorderSide(color: Colors.white, width: 2),
+          bottom: BorderSide(color: Colors.white, width: 3),
+          left: BorderSide(color: Colors.white, width: 4),
         ),
       );
 
@@ -1702,27 +1702,61 @@ void main() {
       final rrect = result.rodRRect;
 
       final topRect = result.clipRects[0];
-      expect(topRect.left, closeTo(rrect.left, tolerance));
-      expect(topRect.top, closeTo(rrect.top, tolerance));
-      expect(topRect.right, closeTo(rrect.right, tolerance));
-      expect(topRect.bottom, closeTo(rrect.top + 2, tolerance));
+      expect(topRect.left, closeTo(rrect.left - 0.5, tolerance));
+      expect(topRect.top, closeTo(rrect.top - 0.5, tolerance));
+      expect(topRect.right, closeTo(rrect.right + 0.5, tolerance));
+      expect(topRect.bottom, closeTo(rrect.top + 0.5, tolerance));
 
       final rightRect = result.clipRects[1];
-      expect(rightRect.left, closeTo(rrect.right - 2, tolerance));
-      expect(rightRect.top, closeTo(rrect.top, tolerance));
-      expect(rightRect.right, closeTo(rrect.right, tolerance));
-      expect(rightRect.bottom, closeTo(rrect.bottom, tolerance));
+      expect(rightRect.left, closeTo(rrect.right - 1, tolerance));
+      expect(rightRect.top, closeTo(rrect.top - 1, tolerance));
+      expect(rightRect.right, closeTo(rrect.right + 1, tolerance));
+      expect(rightRect.bottom, closeTo(rrect.bottom + 1, tolerance));
 
       final bottomRect = result.clipRects[2];
-      expect(bottomRect.left, closeTo(rrect.left, tolerance));
-      expect(bottomRect.top, closeTo(rrect.bottom - 2, tolerance));
-      expect(bottomRect.right, closeTo(rrect.right, tolerance));
-      expect(bottomRect.bottom, closeTo(rrect.bottom, tolerance));
+      expect(bottomRect.left, closeTo(rrect.left - 1.5, tolerance));
+      expect(bottomRect.top, closeTo(rrect.bottom - 1.5, tolerance));
+      expect(bottomRect.right, closeTo(rrect.right + 1.5, tolerance));
+      expect(bottomRect.bottom, closeTo(rrect.bottom + 1.5, tolerance));
 
       final leftRect = result.clipRects[3];
-      expect(leftRect.left, closeTo(rrect.left, tolerance));
-      expect(leftRect.top, closeTo(rrect.top, tolerance));
+      expect(leftRect.left, closeTo(rrect.left - 2, tolerance));
+      expect(leftRect.top, closeTo(rrect.top - 2, tolerance));
       expect(leftRect.right, closeTo(rrect.left + 2, tolerance));
+      expect(leftRect.bottom, closeTo(rrect.bottom + 2, tolerance));
+    });
+
+    test('renders uniform border in a single pass when border is uniform', () {
+      final result = drawSingleBorderedRod(
+        border: Border.all(color: Colors.white, width: 2),
+      );
+
+      expect(result.borderPaths.length, 1);
+      expect(result.borderColors.single, Colors.white);
+      expect(result.clipRects, isEmpty);
+    });
+
+    test('joins connected corners and avoids disconnected edge bleeding', () {
+      final result = drawSingleBorderedRod(
+        border: const Border(
+          top: BorderSide(color: Colors.white, width: 2),
+          left: BorderSide(color: Colors.white, width: 2),
+        ),
+      );
+
+      expect(result.clipRects.length, 2);
+      final rrect = result.rodRRect;
+
+      final topRect = result.clipRects[0];
+      expect(topRect.left, closeTo(rrect.left - 1, tolerance));
+      expect(topRect.top, closeTo(rrect.top - 1, tolerance));
+      expect(topRect.right, closeTo(rrect.right, tolerance));
+      expect(topRect.bottom, closeTo(rrect.top + 1, tolerance));
+
+      final leftRect = result.clipRects[1];
+      expect(leftRect.left, closeTo(rrect.left - 1, tolerance));
+      expect(leftRect.top, closeTo(rrect.top - 1, tolerance));
+      expect(leftRect.right, closeTo(rrect.left + 1, tolerance));
       expect(leftRect.bottom, closeTo(rrect.bottom, tolerance));
     });
 
